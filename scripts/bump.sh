@@ -7,7 +7,11 @@ repo=pelvo/figstudio
 tag=${1:-$(gh release view -R "$repo" --json tagName -q .tagName 2>/dev/null || true)}
 [ -n "$tag" ] || { echo "no release yet, nothing to bump"; exit 0; }
 zip="figstudio-$tag-macos-arm64.zip"
-sha=$(gh release download "$tag" -R "$repo" -p SHA256SUMS -O - | awk -v f="$zip" '$2==f {print $1}')
+# figstudio's release workflow uploads SHA256SUMS last, after every archive. Until then the
+# release is still being built: wait for the next run instead of failing this one.
+sums=$(gh release download "$tag" -R "$repo" -p SHA256SUMS -O - 2>/dev/null) || {
+  echo "$tag has no SHA256SUMS yet, nothing to bump"; exit 0; }
+sha=$(printf '%s\n' "$sums" | awk -v f="$zip" '$2==f {print $1}')
 [ -n "$sha" ] || { echo "no checksum for $zip in $tag" >&2; exit 1; }
 mkdir -p Casks
 cat > Casks/figstudio.rb <<RB

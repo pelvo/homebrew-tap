@@ -6,10 +6,12 @@ on:
 permissions: {contents: write}
 jobs:
   bump:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     env: {GH_TOKEN: "${{ github.token }}"}
     steps:
-      - uses: actions/checkout@v4
+      # Pinned to a commit like pelvo/figstudio's workflows. The checkout keeps its token:
+      # the Commit step pushes with it.
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - run: scripts/bump.sh ${{ inputs.tag }}
       - name: Commit
         run: |
