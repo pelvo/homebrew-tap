@@ -16,7 +16,9 @@ Homebrew 6+ asks you to trust non-official taps; installing by the full name
 
 The cask follows the latest GitHub release; `.github/workflows/bump.yml` checks every 6
 hours. It takes the zip's digest from the release's `SHA256SUMS`, which figstudio's release
-workflow uploads after all archives, and it waits while a release has none yet.
+workflow uploads after all archives, and it waits while a release has none yet. A new
+version lands as a pull request that the workflow merges itself (`main` takes changes only
+through pull requests).
 
 On Linux, figstudio ships static `figstudio-cli` and `figstudio-mcp` tarballs on each
 release instead; this tap has no formula for them. See the

@@ -3,7 +3,7 @@ name: bump
 on:
   schedule: [{cron: "17 */6 * * *"}]
   workflow_dispatch: {inputs: {tag: {description: "release tag (default: latest)", required: false}}}
-permissions: {contents: write}
+permissions: {contents: write, pull-requests: write}
 jobs:
   bump:
     runs-on: ubuntu-24.04
@@ -13,11 +13,20 @@ jobs:
       # the Commit step pushes with it.
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - run: scripts/bump.sh ${{ inputs.tag }}
-      - name: Commit
+      # The main ruleset takes changes only through a pull request (no approval needed), and
+      # the Actions token cannot bypass it: push a branch, open a PR and merge it.
+      - name: Open and merge a pull request
         run: |
           git add Casks
           git diff --cached --quiet && exit 0
+          version=$(sed -n 's/.*version "\(.*\)"/\1/p' Casks/figstudio.rb)
+          branch="bump/figstudio-$version"
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git commit -m "figstudio $(sed -n 's/.*version "\(.*\)"/\1/p' Casks/figstudio.rb)"
-          git push
+          git switch -c "$branch"
+          git commit -m "figstudio $version"
+          git push --force origin "$branch"
+          gh pr view "$branch" --json state -q .state 2>/dev/null | grep -qx OPEN ||
+            gh pr create --base "$GITHUB_REF_NAME" --head "$branch" --title "figstudio $version" \
+              --body "Cask bump from \`scripts/bump.sh\` (sha256 from the release's SHA256SUMS)."
+          gh pr merge "$branch" --squash --delete-branch
