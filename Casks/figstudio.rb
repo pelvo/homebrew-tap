@@ -1,6 +1,6 @@
 cask "figstudio" do
-  version "0.2.0"
-  sha256 "48cf950983f5fd8cd77bd152d6250a7196bb39d704e9ddb68af73a5acd07039b"
+  version "0.3.0"
+  sha256 "576bca7ca9fe4f5aa5f147d7cd6031a0001ecc05339fa9186eef4d4f6b1d2d8d"
 
   url "https://github.com/pelvo/figstudio/releases/download/v#{version}/figstudio-v#{version}-macos-arm64.zip"
   name "figstudio"
